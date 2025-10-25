@@ -3,7 +3,7 @@
   "name": "Drug Search (OpenFDA)",
   "author": "Your Name",
   "description": "Search for drug information from OpenFDA using a floating widget.",
-  "repoUrl": "https://github.com/your-username/remnote-drug-search",
+  "repoUrl": "https://github.com/hasyhoucin/drugs-remnote-plugin",
   "version": {
     "major": 1,
     "minor": 0,
@@ -18,4 +18,5 @@
   "requested_permissions": [
     "http://api.fda.gov/*"
   ]
+
 }
