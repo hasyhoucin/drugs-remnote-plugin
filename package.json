@@ -6,9 +6,7 @@
   "scripts": {
     "build": "webpack",
     "dev": "webpack --watch --mode=development",
-    "serve": "node esbuild.js --serve",
-    "install-plugin": "npm run build && node .\\dist\\index.js --install-plugin",
-    "postinstall": "node esbuild.js"
+    "install-plugin": "npm run build && node .\\dist\\index.js --install-plugin"
   },
   "license": "MIT",
   "dependencies": {
