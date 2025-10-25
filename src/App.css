@@ -1,61 +1,58 @@
-.drug-search-widget {
-    padding: 12px;
-    background-color: var(--color-background-secondary);
-    border-radius: 8px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .drug-search-widget h4 {
-    margin-top: 0;
-    color: var(--color-text-primary);
-  }
-  
-  .rem-input {
-    width: 100%;
-    padding: 8px;
-    background-color: var(--color-background-primary);
-    border: 1px solid var(--color-border);
-    color: var(--color-text-primary);
-    border-radius: 4px;
-    box-sizing: border-box; /* Ensures padding doesn't affect width */
-  }
-  
-  .results-container {
-    margin-top: 10px;
-    overflow-y: auto;
-    flex-grow: 1;
-  }
-  
-  .results-container ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .result-item {
-    padding: 8px;
-    cursor: pointer;
-    border-radius: 4px;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .result-item:hover {
-    background-color: var(--color-background-tertiary);
-  }
-  
-  .result-item strong {
-    color: var(--color-text-primary);
-    font-size: 1.1em;
-  }
-  
-  .result-item small {
-    color: var(--color-text-secondary);
-    font-size: 0.9em;
-  }
-  
-  .error-message {
-    color: var(--color-red);
-  }
+.drug-search-popup {
+  padding: 12px;
+  background-color: var(--rn-clr-background-primary);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.drug-search-popup input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--rn-clr-border-primary);
+  background-color: var(--rn-clr-background-secondary);
+  color: var(--rn-clr-content-primary);
+  font-size: 14px;
+  box-sizing: border-box; /* Ensures padding doesn't affect width */
+}
+
+.drug-search-popup input:focus {
+  outline: none;
+  border-color: var(--rn-clr-focus-primary);
+}
+
+.drug-results-list {
+  margin-top: 10px;
+}
+
+.drug-result-item {
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--rn-clr-border-primary);
+  color: var(--rn-clr-content-primary);
+}
+
+.drug-result-item:last-child {
+  border-bottom: none;
+}
+
+.drug-result-item:hover {
+  background-color: var(--rn-clr-background-secondary-hover);
+}
+
+.drug-result-item strong {
+  color: var(--rn-clr-content-primary);
+}
+
+.drug-result-item em {
+  color: var(--rn-clr-content-secondary);
+}
+
+.drug-info {
+  font-size: 0.9em;
+  color: var(--rn-clr-content-secondary);
+  margin-top: 4px;
+}

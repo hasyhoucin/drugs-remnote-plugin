@@ -1,22 +1,19 @@
 {
-  "id": "drug-search-plugin",
-  "name": "Drug Search (OpenFDA)",
+  "id": "openfda-drug-search",
+  "name": "OpenFDA Drug Search",
   "author": "Your Name",
-  "description": "Search for drug information from OpenFDA using a floating widget.",
-  "repoUrl": "https://github.com/hasyhoucin/drugs-remnote-plugin",
-  "version": {
-    "major": 1,
-    "minor": 0,
-    "patch": 0
-  },
+  "description": "Triggers a drug search popup when you type =1=1.",
+  "repoUrl": "https://github.com/your-username/your-repo",
+  "pluginVersion": "1.0",
   "manifestVersion": 1,
-  "requestNative": false,
-  "requiredScopes": [],
-  "enableOnMobile": true,
-  "jsMain": "dist/index.js",
-  "cssMain": "dist/style.css",
-  "requested_permissions": [
-    "http://api.fda.gov/*"
-  ]
-
+  "permissions": {
+    "read": true,
+    "modify": true
+  },
+  "widget": {
+    "main": "widget/index",
+    "height": "auto",
+    "width": "auto",
+    "requestDisplayPersistence": true
+  }
 }

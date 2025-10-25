@@ -1,142 +1,98 @@
 import { usePlugin } from '@remnote/plugin-sdk';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 
-// Define the structure of the drug info we expect
-// (No change here)
+// Define the structure of an API result
 interface DrugInfo {
   id: string;
-  brand_name: string;
-  generic_name: string;
-  pharm_class: string;
-  related_drugs: string[];
+  openfda?: {
+    brand_name?: string[];
+    generic_name?: string[];
+  };
+  pharmacologic_class?: string[];
 }
 
-// Simple debounce function (No change here)
-function useDebounce(value: string, delay: number) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-  return debouncedValue;
-}
-
-export const DrugSearchWidget = () => {
+export const DrugSearchPopup = () => {
   const plugin = usePlugin();
-  const [query, setQuery] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<DrugInfo[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const debouncedQuery = useDebounce(query, 300); // 300ms delay
+  // Auto-focus the input field when the popup opens
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
-  const fetchDrugs = useCallback(async (searchQuery: string) => {
-    if (searchQuery.length < 2) {
+  // This effect runs when 'searchTerm' changes, but "debounced"
+  useEffect(() => {
+    if (searchTerm.length < 2) {
       setResults([]);
       return;
     }
-    setIsLoading(true);
-    setError(null);
 
+    setLoading(true);
+    const delayDebounceFn = setTimeout(() => {
+      fetchDrugs(searchTerm);
+    }, 300); // Wait 300ms after user stops typing
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
+
+  const fetchDrugs = async (term: string) => {
     try {
-      // Use OpenFDA's label endpoint. Search in brand_name and generic_name
-      const url = `https://api.fda.gov/drug/label.json?search=(brand_name:"${searchQuery}"+OR+openfda.generic_name:"${searchQuery}")&limit=10`;
-      
-      // Use the native fetch API
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to fetch data from OpenFDA');
-      }
-      const data = await response.json();
-
-      if (data.results) {
-        const formattedResults: DrugInfo[] = data.results.map((item: any) => ({
-          id: item.id,
-          brand_name: item.brand_name ? item.brand_name[0] : 'N/A',
-          generic_name: item.openfda?.generic_name ? item.openfda.generic_name[0] : 'N/A',
-          pharm_class: item.openfda?.pharm_class_epc ? item.openfda.pharm_class_epc[0] : 'N/A',
-          related_drugs: item.openfda?.brand_name_base || [],
-        }));
-        setResults(formattedResults);
-      } else {
-        setResults([]);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchDrugs(debouncedQuery);
-  }, [debouncedQuery, fetchDrugs]);
-
-  // Function to insert the selected drug info into the editor
-  const handleResultClick = async (drug: DrugInfo) => {
-    const rem = await plugin.focus.getFocusedRem();
-    if (rem) {
-      // 1. CORRECTED: insertTextAfter is now insertTextAtCursor.
-      // We insert the main drug name at the current cursor position.
-      await plugin.editor.insertTextAtCursor(
-        `${drug.brand_name} (${drug.generic_name})`
+      const response = await axios.get(
+        `https://api.fda.gov/drug/label.json`,
+        {
+          params: {
+            search: `(openfda.brand_name:"${term}" OR openfda.generic_name:"${term}")`,
+            limit: 5,
+          },
+        }
       );
-      
-      // 2. CORRECTED: getByName replaces findByName, and it returns an array of Rems.
-      // We grab the first one if found.
-      const newRems = await plugin.rem.getByName([`${drug.brand_name} (${drug.generic_name})`]);
-      const newRem = newRems ? newRems[0] : null; 
-      
-      // Add children to the new Rem with more details
-      if (newRem) {
-        // 3. CORRECTED: createRem now takes the parentId and the content string.
-        await plugin.rem.createRem(
-          newRem._id, 
-          `Family / Action:: ${drug.pharm_class}`
-        );
-        
-        // You'd typically insert related drugs as sub-bullets under the Family/Action rem or under the main drug rem.
-        // Let's insert them under the main drug rem for simplicity:
-        await plugin.rem.createRem(
-          newRem._id,
-          `Other Commercial Names:: ${drug.related_drugs.join(', ')}`
-        );
-      }
+      setResults(response.data.results || []);
+    } catch (error) {
+      console.error('Error fetching from OpenFDA:', error);
     }
-    // 4. CORRECTED: closeFloatingWidget takes no arguments.
-    plugin.window.closeFloatingWidget();
+    setLoading(false);
+  };
+
+  const handleSelectDrug = (drug: DrugInfo) => {
+    // Optional: You could insert the drug name into the editor
+    // For now, we'll just close the popup
+    plugin.window.closePopup();
   };
 
   return (
-    // (Rest of the React Component remains the same)
-    <div className="drug-search-widget">
-      <h4>Search OpenFDA</h4>
+    <div className="drug-search-popup">
       <input
+        ref={inputRef}
         type="text"
-        placeholder="Type a drug name..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="rem-input"
-        autoFocus
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder="Type drug name..."
       />
-      <div className="results-container">
-        {isLoading && <div>Loading...</div>}
-        {error && <div className="error-message">{error}</div>}
-        {!isLoading && !error && results.length === 0 && debouncedQuery.length > 1 && (
-          <div>No results found.</div>
-        )}
-        <ul>
-          {results.map((drug) => (
-            <li key={drug.id} onClick={() => handleResultClick(drug)} className="result-item">
-              <strong>{drug.brand_name}</strong> ({drug.generic_name})
-              <small>Class: {drug.pharm_class}</small>
-            </li>
-          ))}
-        </ul>
+      <div className="drug-results-list">
+        {loading && <div className="drug-result-item">Loading...</div>}
+        {!loading &&
+          results.map((drug) => {
+            const commercialNames = drug.openfda?.brand_name?.join(', ') || 'N/A';
+            const genericName = drug.openfda?.generic_name?.join(', ') || 'N/A';
+            const family = drug.pharmacologic_class?.join(', ') || 'N_A';
+
+            return (
+              <div
+                key={drug.id}
+                className="drug-result-item"
+                onClick={() => handleSelectDrug(drug)}
+              >
+                <strong>{commercialNames}</strong> (<em>{genericName}</em>)
+                <div className="drug-info">
+                  <strong>Family/Action:</strong> {family}
+                </div>
+              </div>
+            );
+          })}
       </div>
     </div>
   );

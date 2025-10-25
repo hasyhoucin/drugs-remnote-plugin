@@ -1,52 +1,46 @@
-import { registerWidget, RemNotePlugin, RNPlugin, WidgetLocation } from '@remnote/plugin-sdk';
-import '../App.css';
-import { DrugSearchWidget } from './DrugSearchWidget';
+import { Event, RNPlugin, WidgetLocation } from '@remnote/plugin-sdk';
+import { DrugSearchPopup } from './DrugSearchPopup';
 
-// 1. Corrected imports and function signatures
 async function onActivate(plugin: RNPlugin) {
-
-  // Register the slash command (now just a command)
-  await plugin.app.registerCommand({
-    id: 'drugSearch',
-    name: 'Drug Search (=1=1)',
-    description: 'Opens a floating window to search for drug information',
-    // 2. The action is now simpler
-    action: async () => {
-      // This action opens the floating widget
-      await plugin.window.openFloatingWidget(
-        'drugSearchWidget', // This ID must match the registered widget
-        {
-          // 3. Floating widget dimensions now use top, left, right, bottom for positioning
-          // and the widget dimensions are defined in registerWidget
-          top: 100,
-          left: 100,
-        },
-      );
-    },
-  });
-
-  // 4. Corrected function name to registerWidget and new syntax
-  registerWidget(
-    'drugSearchWidget',
-    WidgetLocation.Floating, // Use WidgetLocation enum
+  // Register the React component to be used as a popup widget
+  await plugin.app.registerWidget(
+    'drugSearchPopup',
+    WidgetLocation.Popup,
     {
-      dimensions: {
-        width: 500,
-        height: 400
-      },
-      widgetComponent: DrugSearchWidget,
+      component: DrugSearchPopup,
+      dimensions: { width: 450, height: 'auto' },
+    }
+  );
+
+  // Add a listener that fires whenever the text in the editor changes
+  plugin.event.addListener(
+    Event.RichTextEditorChanged,
+    async ({ remId }) => {
+      const rem = await plugin.rem.findOne(remId);
+      if (!rem) {
+        return;
+      }
+
+      const text = await plugin.richText.toPlainText(rem.text);
+
+      // Check if the text ends with the trigger string
+      if (text.endsWith('=1=1')) {
+        // 1. Remove the trigger string from the Rem
+        const newText = text.substring(0, text.length - 4);
+        await rem.setText(await plugin.richText.fromPlainText(newText));
+
+        // 2. Open the popup widget at the current cursor location
+        await plugin.window.openPopup('drugSearchPopup');
+      }
     }
   );
 }
 
-// 5. Plugin is now registered differently
-// Note: onActivate will be called when the widget is opened for the first time
-// For simple plugins, we use registerWidget (which calls register)
-registerWidget(
-    'index', 
-    WidgetLocation.Floating, 
-    { 
-        widgetComponent: DrugSearchWidget,
-        onActivate: onActivate, 
-    }
-);
+async function onDeactivate(plugin: RNPlugin) {}
+
+plugin.register({
+  name: 'OpenFDA Drug Search',
+  id: 'openfda-drug-search',
+  onActivate,
+  onDeactivate,
+});
