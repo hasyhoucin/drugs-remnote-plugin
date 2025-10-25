@@ -1,0 +1,21 @@
+{
+  "id": "drug-search-plugin",
+  "name": "Drug Search (OpenFDA)",
+  "author": "Your Name",
+  "description": "Search for drug information from OpenFDA using a floating widget.",
+  "repoUrl": "https://github.com/your-username/remnote-drug-search",
+  "version": {
+    "major": 1,
+    "minor": 0,
+    "patch": 0
+  },
+  "manifestVersion": 1,
+  "requestNative": false,
+  "requiredScopes": [],
+  "enableOnMobile": true,
+  "jsMain": "dist/index.js",
+  "cssMain": "dist/style.css",
+  "requested_permissions": [
+    "http://api.fda.gov/*"
+  ]
+}
