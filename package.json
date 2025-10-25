@@ -11,8 +11,9 @@
       "postinstall": "node esbuild.js"
     },
     "license": "MIT",
+    },
     "dependencies": {
-      "@remnote/plugin-sdk": "^0.0.11",
+      "@remnote/plugin-sdk": "^0.0.28", 
       "react": "^17.0.2",
       "react-dom": "^17.0.2"
     },
