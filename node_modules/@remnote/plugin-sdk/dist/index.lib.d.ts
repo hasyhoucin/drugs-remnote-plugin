@@ -1,0 +1,1 @@
+export { parseManifest } from './validation';

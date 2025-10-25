@@ -2,6 +2,7 @@ import { usePlugin } from '@remnote/plugin-sdk';
 import React, { useState, useEffect, useCallback } from 'react';
 
 // Define the structure of the drug info we expect
+// (No change here)
 interface DrugInfo {
   id: string;
   brand_name: string;
@@ -10,7 +11,7 @@ interface DrugInfo {
   related_drugs: string[];
 }
 
-// Simple debounce function to avoid firing API calls on every keystroke
+// Simple debounce function (No change here)
 function useDebounce(value: string, delay: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
@@ -45,6 +46,7 @@ export const DrugSearchWidget = () => {
       // Use OpenFDA's label endpoint. Search in brand_name and generic_name
       const url = `https://api.fda.gov/drug/label.json?search=(brand_name:"${searchQuery}"+OR+openfda.generic_name:"${searchQuery}")&limit=10`;
       
+      // Use the native fetch API
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch data from OpenFDA');
@@ -78,28 +80,39 @@ export const DrugSearchWidget = () => {
   const handleResultClick = async (drug: DrugInfo) => {
     const rem = await plugin.focus.getFocusedRem();
     if (rem) {
-      // Insert the main info at the current cursor
-      await plugin.editor.insertTextAfter(
+      // 1. CORRECTED: insertTextAfter is now insertTextAtCursor.
+      // We insert the main drug name at the current cursor position.
+      await plugin.editor.insertTextAtCursor(
         `${drug.brand_name} (${drug.generic_name})`
       );
-      // Get the Rem ID of the newly inserted text
-      const newRem = await plugin.rem.findByName([`${drug.brand_name} (${drug.generic_name})`]);
+      
+      // 2. CORRECTED: getByName replaces findByName, and it returns an array of Rems.
+      // We grab the first one if found.
+      const newRems = await plugin.rem.getByName([`${drug.brand_name} (${drug.generic_name})`]);
+      const newRem = newRems ? newRems[0] : null; 
       
       // Add children to the new Rem with more details
       if (newRem) {
+        // 3. CORRECTED: createRem now takes the parentId and the content string.
         await plugin.rem.createRem(
-          { text: `Family / Action`, parentId: newRem._id, children: [drug.pharm_class] }
+          newRem._id, 
+          `Family / Action:: ${drug.pharm_class}`
         );
+        
+        // You'd typically insert related drugs as sub-bullets under the Family/Action rem or under the main drug rem.
+        // Let's insert them under the main drug rem for simplicity:
         await plugin.rem.createRem(
-          { text: `Other Commercial Names`, parentId: newRem._id, children: drug.related_drugs }
+          newRem._id,
+          `Other Commercial Names:: ${drug.related_drugs.join(', ')}`
         );
       }
     }
-    // Close the widget after inserting
+    // 4. CORRECTED: closeFloatingWidget takes no arguments.
     plugin.window.closeFloatingWidget();
   };
 
   return (
+    // (Rest of the React Component remains the same)
     <div className="drug-search-widget">
       <h4>Search OpenFDA</h4>
       <input

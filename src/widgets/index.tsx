@@ -1,34 +1,34 @@
-import { PluginCommand, Plugin, ReactRNPlugin } from '@remnote/plugin-sdk';
+import { registerWidget, RemNotePlugin, RNPlugin, WidgetLocation } from '@remnote/plugin-sdk';
 import '../App.css';
 import { DrugSearchWidget } from './DrugSearchWidget';
 
-async function onActivate(plugin: ReactRNPlugin) {
+// 1. Corrected imports and function signatures
+async function onActivate(plugin: RNPlugin) {
 
-  // Register the slash command
-  await plugin.app.registerCommand<PluginCommand>({
+  // Register the slash command (now just a command)
+  await plugin.app.registerCommand({
     id: 'drugSearch',
     name: 'Drug Search (=1=1)',
     description: 'Opens a floating window to search for drug information',
+    // 2. The action is now simpler
     action: async () => {
       // This action opens the floating widget
       await plugin.window.openFloatingWidget(
         'drugSearchWidget', // This ID must match the registered widget
         {
+          // 3. Floating widget dimensions now use top, left, right, bottom for positioning
+          // and the widget dimensions are defined in registerWidget
           top: 100,
           left: 100,
-          width: 500,
-          height: 400,
         },
-        true // Make it focusable
       );
     },
   });
 
-  // Register the floating widget
-  // This is the component that will be rendered in the floating window
-  await plugin.widget.registerFloatingWidget(
+  // 4. Corrected function name to registerWidget and new syntax
+  registerWidget(
     'drugSearchWidget',
-    'Drug Search',
+    WidgetLocation.Floating, // Use WidgetLocation enum
     {
       dimensions: {
         width: 500,
@@ -39,8 +39,14 @@ async function onActivate(plugin: ReactRNPlugin) {
   );
 }
 
-async function onDeactivate(plugin: Plugin) {
-}
-
-declare var plugin: ReactRNPlugin;
-plugin.register(onActivate, onDeactivate);
+// 5. Plugin is now registered differently
+// Note: onActivate will be called when the widget is opened for the first time
+// For simple plugins, we use registerWidget (which calls register)
+registerWidget(
+    'index', 
+    WidgetLocation.Floating, 
+    { 
+        widgetComponent: DrugSearchWidget,
+        onActivate: onActivate, 
+    }
+);
