@@ -1,19 +1,9 @@
 {
-  "id": "openfda-drug-search",
-  "name": "OpenFDA Drug Search",
+  "id": "drug-search-plugin",
+  "name": "Drug Search Plugin",
+  "version": "1.0.0",
+  "description": "Search drug information using OpenFDA API",
   "author": "Your Name",
-  "description": "Triggers a drug search popup when you type =1=1.",
-  "repoUrl": "https://github.com/your-username/your-repo",
-  "pluginVersion": "1.0",
-  "manifestVersion": 1,
-  "permissions": {
-    "read": true,
-    "modify": true
-  },
-  "widget": {
-    "main": "widget/index",
-    "height": "auto",
-    "width": "auto",
-    "requestDisplayPersistence": true
-  }
+  "logo": "logo.svg",
+  "minimumRemNoteVersion": "1.8.0"
 }

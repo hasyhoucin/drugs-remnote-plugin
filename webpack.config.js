@@ -1,7 +1,6 @@
-const path = require('path');
+const { RemnoteAPI } = require('@remnote/core');
 
 module.exports = {
-  mode: 'production',
   entry: './src/widgets/index.tsx',
   module: {
     rules: [
@@ -11,40 +10,13 @@ module.exports = {
         exclude: /node_modules/,
       },
       {
-        test: /\.css$/,
-        use: [
-          'style-loader',
-          'css-loader',
-          {
-            loader: 'postcss-loader',
-            options: {
-              postcssOptions: {
-                plugins: [
-                  [
-                    'postcss-preset-env',
-                    {
-                      // Options
-                    },
-                  ],
-                ],
-              },
-            },
-          },
-        ],
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader'],
       },
     ],
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
   },
-  output: {
-    filename: 'index.js',
-    path: path.resolve(__dirname, 'dist'),
-    libraryTarget: 'commonjs',
-  },
-  externals: {
-    react: 'react',
-    'react-dom': 'react-dom',
-    '@remnote/plugin-sdk': '@remnote/plugin-sdk',
-  },
+  ...RemnoteAPI.getWebpackConfig(),
 };
